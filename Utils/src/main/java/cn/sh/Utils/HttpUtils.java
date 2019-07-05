@@ -6,9 +6,11 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -20,10 +22,13 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.util.EntityUtils;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.http.cookie.Cookie;
 
 @SuppressWarnings("deprecation")
 public class HttpUtils {
@@ -98,7 +103,7 @@ public class HttpUtils {
 		if(params != null && !"".equals(params = params.trim())){
 			entity = new StringEntity(params, Charset.forName("UTF-8"));
 		}
-		return doPost(url, entity, headers, requestConfig);
+		return doPost(url, entity, headers, requestConfig, null);
 		
 	}
 	
@@ -111,7 +116,7 @@ public class HttpUtils {
 	 */
 	public static String doPost(String url, List<NameValuePair> params) throws Exception {
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params, "UTF-8");
-		return doPost(url, entity, null, null);
+		return doPost(url, entity, null, null, null);
 		
 	}
 	
@@ -123,9 +128,9 @@ public class HttpUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String doPost(String url, List<NameValuePair> params, Map<String, String> headers) throws Exception {
+	public static String doPost(String url, List<NameValuePair> params, Map<String, String> headers, Map<String, String> cookies) throws Exception {
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params, "UTF-8");
-		return doPost(url, entity, headers, null);
+		return doPost(url, entity, headers, null, cookies);
 		
 	}
 	
@@ -140,7 +145,7 @@ public class HttpUtils {
 	 */
 	public static String doPost(String url, List<NameValuePair> params, Map<String, String> headers, RequestConfig requestConfig) throws Exception {
 		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params, "UTF-8");
-		return doPost(url, entity, headers, requestConfig);
+		return doPost(url, entity, headers, requestConfig, null);
 		
 	}
 	
@@ -154,16 +159,23 @@ public class HttpUtils {
 	 * @throws Exception
 	 */
 
-	public static String doPost(String url, StringEntity entity, Map<String, String> headers, RequestConfig requestConfig) throws Exception {
+	public static String doPost(String url, StringEntity entity, Map<String, String> headers, RequestConfig requestConfig, Map<String, String> cookies) throws Exception {
 		if(url==null || "".equals(url = url.trim())){
 			throw new Exception("url不存在");
 		}
 		if(requestConfig==null){
 			requestConfig = defaultRequestConfig;
 		}
+		CookieStore cookieStore = new BasicCookieStore();
+		if(cookies != null && cookies.size()>0) {
+			for(Entry<String, String> cookie:cookies.entrySet()) {
+				cookieStore.addCookie(new BasicClientCookie(cookie.getKey(), cookie.getValue()));
+			}
+		}
+		
 		String result = null;
 		SSLConnectionSocketFactory scsf = new SSLConnectionSocketFactory(SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(), NoopHostnameVerifier.INSTANCE);
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(scsf).setDefaultRequestConfig(requestConfig).build();
+		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(scsf).setDefaultRequestConfig(requestConfig).setDefaultCookieStore(cookieStore).build();
 		HttpPost postRequest = new HttpPost(url);
 		if(headers!=null && headers.size()>0){
 			for(Map.Entry<String, String> header:headers.entrySet()){
@@ -205,7 +217,7 @@ public class HttpUtils {
 	 */
 	public static String doGet(String url, Map<String, String> params) throws Exception {
 		String paramStr = splitJoinGetRequest(params);
-		return doGet(url, paramStr, null, null);
+		return doGet(url, paramStr, null, null, null);
 	}
 	
 	/**
@@ -216,9 +228,9 @@ public class HttpUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String doGet(String url, Map<String, String> params, Map<String, String> headers) throws Exception {
+	public static String doGet(String url, Map<String, String> params, Map<String, String> headers, Map<String, String> cookies) throws Exception {
 		String paramStr = splitJoinGetRequest(params);
-		return doGet(url, paramStr, headers, null);
+		return doGet(url, paramStr, headers, null, cookies);
 	}
 	
 	/**
@@ -232,7 +244,7 @@ public class HttpUtils {
 	 */
 	public static String doGet(String url, Map<String, String> params, Map<String, String> headers, RequestConfig requestConfig) throws Exception {
 		String paramStr = splitJoinGetRequest(params);
-		return doGet(url, paramStr, headers, requestConfig);
+		return doGet(url, paramStr, headers, requestConfig, null);
 	}
 	
 	/**
@@ -244,7 +256,7 @@ public class HttpUtils {
 	 */
 	public static String doAscSortGet(String url, Map<String, String> params) throws Exception {
 		String paramStr = splitJoinGetAscSortRequest(params);
-		return doGet(url, paramStr, null, null);
+		return doGet(url, paramStr, null, null, null);
 	}
 	/**
 	 * get请求   请求变量按key值递增排序
@@ -254,9 +266,9 @@ public class HttpUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String doAscSortGet(String url, Map<String, String> params, Map<String, String> headers) throws Exception {
+	public static String doAscSortGet(String url, Map<String, String> params, Map<String, String> headers, Map<String, String> cookies) throws Exception {
 		String paramStr = splitJoinGetAscSortRequest(params);
-		return doGet(url, paramStr, headers, null);
+		return doGet(url, paramStr, headers, null, cookies);
 	}
 	
 	/**
@@ -270,7 +282,7 @@ public class HttpUtils {
 	 */
 	public static String doAscSortGet(String url, Map<String, String> params, Map<String, String> headers, RequestConfig requestConfig) throws Exception {
 		String paramStr = splitJoinGetAscSortRequest(params);
-		return doGet(url, paramStr, headers, requestConfig);
+		return doGet(url, paramStr, headers, requestConfig, null);
 	}
 	
 	/**
@@ -282,7 +294,7 @@ public class HttpUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static String doGet(String url, String paramStr, Map<String, String> headers, RequestConfig requestConfig) throws Exception {
+	public static String doGet(String url, String paramStr, Map<String, String> headers, RequestConfig requestConfig, Map<String, String> cookies) throws Exception {
 		if(url==null || "".equals(url = url.trim())){
 			throw new Exception("url不存在");
 		}
@@ -294,8 +306,14 @@ public class HttpUtils {
 		if(requestConfig==null){
 			requestConfig = defaultRequestConfig;
 		}
+		CookieStore cookieStore = new BasicCookieStore();
+		if(cookies != null && cookies.size()>0) {
+			for(Entry<String, String> cookie:cookies.entrySet()) {
+				cookieStore.addCookie(new BasicClientCookie(cookie.getKey(), cookie.getValue()));
+			}
+		}
 		String result = null;
-		CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(requestConfig).build();
+		CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(requestConfig).setDefaultCookieStore(cookieStore).build();
 		HttpGet postRequest = new HttpGet(new StringBuilder(url).append(paramStr).toString());
 		if(headers!=null && headers.size()>0){
 			for(Map.Entry<String, String> header:headers.entrySet()){
