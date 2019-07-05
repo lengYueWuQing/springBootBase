@@ -21,7 +21,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter{
 	      //.loginProcessingUrl("/json/index") // 自定义的登录接口
 	      .and()
 	      .authorizeRequests()    // 定义哪些URL需要被保护、哪些不需要被保护
-	      .antMatchers("/json/**", "/shutDownService").permitAll()   // 设置所有人都可以访问登录页面
+	      .antMatchers("/json/**", "/shutDownService", "/druid/**").permitAll()   // 设置所有人都可以访问登录页面
 	      .anyRequest()        // 任何请求,登录后可以访问
 	      .authenticated()
 	      .and()

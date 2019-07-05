@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -29,7 +30,7 @@
 			<version>3.8.1</version><!--$NO-MVN-MAN-VER$ -->
 			<scope>test</scope>
 		</dependency>
-		
+
 		<!-- 测试 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -43,28 +44,27 @@
 		</dependency>
 
 		<!-- <dependency>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-resources-plugin</artifactId>
-			<version>3.1.0</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency> -->
-		
+
+		<!-- <dependency> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-resources-plugin</artifactId> 
+			<version>3.1.0</version> </dependency> -->
+
 		<!-- springboot spring security支持包 -->
 		<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-        
-        <!-- nekohtml支持包，页面可以使用不严格html5格式，即LEGACYHTML5 -->
-        <dependency>
-		   <groupId>net.sourceforge.nekohtml</groupId>
-		   <artifactId>nekohtml</artifactId>
-		</dependency>
-		
-		<!-- <dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<optional>true</optional>
-		</dependency> -->
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!-- nekohtml支持包，页面可以使用不严格html5格式，即LEGACYHTML5 -->
+		<dependency>
+			<groupId>net.sourceforge.nekohtml</groupId>
+			<artifactId>nekohtml</artifactId>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-devtools</artifactId> 
+			<optional>true</optional> </dependency> -->
 
 	</dependencies>
 	<modules>

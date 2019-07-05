@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="cn.sh.base.dao.user">
+<mapper namespace="cn.sh.base.dao.user.UserDao">
 	
 	<!-- 1.根据id查询一个用户 -->
 	<select id="getById" resultType="user">

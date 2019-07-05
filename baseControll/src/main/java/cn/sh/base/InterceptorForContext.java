@@ -22,7 +22,7 @@ public class InterceptorForContext implements HandlerInterceptor {
 			throws Exception {
 		
 		String path = request.getRequestURI();
-		
+		String method = request.getMethod();
 		response.setHeader("Access-Control-Allow-Origin", "*");  
 		  
 		response.setHeader("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");  
@@ -33,6 +33,9 @@ public class InterceptorForContext implements HandlerInterceptor {
   
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/json; charset=utf-8");
+		if(method.equalsIgnoreCase("get")) {
+			return true;
+		}
 		StringBuilder content = new StringBuilder();
 		String line = null;
 		try {
