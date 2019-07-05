@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+    <groupId>cn.sh.base</groupId>
+	<artifactId>baseControll</artifactId>
+	<packaging>jar</packaging>
+
+
+	<name>baseControll</name>
+	<url>http://maven.apache.org</url>
+
+	<parent>
+		<groupId>cn.sh</groupId>
+		<artifactId>basePom</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../basePom/pom.xml</relativePath>
+	</parent>
+
+	<dependencies>
+		
+		<dependency>
+			<groupId>cn.sh.base</groupId>
+			<artifactId>baseService</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<defaultGoal>compile</defaultGoal>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<!-- 打包 -->
+				<configuration>
+					<mainClass>cn.sh.base.controll.FrameWindows</mainClass>
+				</configuration>
+			</plugin>
+			<!-- 编译时设置参数 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<verbose>true</verbose>
+					<fork>true</fork>
+					<executable>${JAVA8_HOME}/bin/javac</executable>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

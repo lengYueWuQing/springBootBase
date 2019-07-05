@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.sh.base.dao.user">
+	
+	<!-- 1.根据id查询一个用户 -->
+	<select id="getById" resultType="user">
+		select 
+			id,
+			login_name loginName,
+			status,
+			pass password,
+			real_name realName,
+			create_time createTime
+		from t_user
+		where id=#{id}
+	</select>
+	<!-- 2.根据id删除一个用户 -->
+	<delete id="delById">
+		delete from t_user
+		where id=#{id}
+	</delete>
+	<!-- 3.动态修改一个用户信息 -->
+	<update id="update" parameterType="user">
+		update t_user
+		<set>
+			<if test="loginName!=null">
+				login_name=#{loginName},
+			</if>
+			<if test="password!=null">
+				pass=#{password},
+			</if>
+			<if test="status!=null">
+				status=#{status},
+			</if>
+			<if test="realName!=null">
+				real_name=#{realName}
+			</if>
+		</set>
+		where
+			id=#{id}
+	</update>
+	<!-- 4.添加一个用户 -->
+	<insert id="save" parameterType="user" useGeneratedKeys="true" keyProperty="id">
+		insert into t_user(login_name,pass,real_name,status,create_time)
+		values(#{loginName},#{password},#{realName},#{status},#{createTime})
+	</insert>
+	<!-- 5.根据分页信息和过滤条件查询用户 -->
+	<select id="findByPage" resultType="user">
+		select 
+			id,
+			login_name loginName,
+			status,
+			real_name realName,
+			create_time createTime
+		from t_user
+		<if test="user!=null">
+			<where>
+				<if test="user.createTime!=null">
+					 date_format(create_time,'%Y-%m-%d')=date_format(#{user.createTime},'%Y-%m-%d')
+				</if>
+				<if test="user.status!=null">
+					and status=#{user.status}
+				</if>
+				<if test="user.loginName!=null">
+					and  login_name like CONCAT('%',#{user.loginName},'%') 
+				</if>
+				<if test="user.realName!=null">
+					and real_name like CONCAT('%',#{user.realName},'%')
+				</if>
+			</where>
+		</if>
+		<if test="page!=null">
+			limit #{page.startNum},#{page.pageSize}
+		</if>
+	</select>
+	<!-- 6.根据过滤条件统计用户数量 -->
+	<select id="count" resultType="int">
+		select count(id) from t_user
+		<if test="user!=null">
+			<where>
+				<if test="user.createTime!=null">
+					and date_format(create_time,'%Y-%m-%d')=date_format(#{user.createTime},'%Y-%m-%d')
+				</if>
+				<if test="user.status!=null">
+					and status=#{user.status}
+				</if>
+				<if test="user.loginName!=null">
+					and login_name like CONCAT('%',#{user.loginName},'%') 
+				</if>
+				<if test="user.realName!=null">
+					and real_name like CONCAT('%',#{user.realName},'%')
+				</if>
+			</where> 
+		</if>
+	</select>
+	<!-- 7.根据登录名和密码查询用户 -->
+	<select id="getByLoginNameAndPass" resultType="user">
+		select 
+			id,
+			login_name loginName,
+			pass password,
+			status,
+			real_name realName,
+			create_time createTime
+		from t_user
+		where login_name=#{loginName}
+			and pass=#{pass}
+	</select>
+</mapper>
