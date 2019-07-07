@@ -33,7 +33,7 @@ public class SendQQEmailUtils {
 	 * @throws Exception
 	 * @throws UnsupportedEncodingException
 	 */
-	public static boolean sendMessageMail(String userName, String password, String subject, String message,
+	public static boolean sendMessageMail(final String userName, final String password, String subject, String message,
 			List<String> addressList, List<File> fileList) throws Exception {
 		
 		if (addressList == null || addressList.size() <= 0) {
@@ -57,7 +57,7 @@ public class SendQQEmailUtils {
 		pro.setProperty("mail.smtp.socketFactory.port", port);
 		pro.setProperty("mail.smtp.auth", "true");
 		// 开启debug调试，以便在控制台查看
-		// pro.setProperty("mail.debug", "true");
+		pro.setProperty("mail.debug", "false");
 		pro.put("mail.smtp.host", host);
 		pro.put("mail.smtp.username", userName);
 		pro.put("mail.smtp.password", password);
@@ -72,15 +72,15 @@ public class SendQQEmailUtils {
 			}
 		});
 		// 通过session得到transport对象
-		Transport ts = sendMailSession.getTransport();
-		ts.connect(host, userName, password);// 后面的字符是授权码，用qq密码反正我是失败了（用自己的，别用我的，这个号是我瞎编的，为了。。。。）
+		//Transport ts = sendMailSession.getTransport();
+		//ts.connect(host, userName, password);// 后面的字符是授权码，用qq密码反正我是失败了（用自己的，别用我的，这个号是我瞎编的，为了。。。。）
 
 		// 连接邮件服务器：邮箱类型，帐号，授权码代替密码（更安全）
 
 		// 根据session创建一个邮件消息
 		Message mailMessage = new MimeMessage(sendMailSession);
 		// 创建邮件发送者地址
-		Address from = new InternetAddress(userName + "@qq.com");
+		Address from = new InternetAddress("1126257895@qq.com");
 		// 设置邮件消息的发送者
 		mailMessage.setFrom(from);
 		// 创建邮件的接收者地址，并设置到邮件消息中

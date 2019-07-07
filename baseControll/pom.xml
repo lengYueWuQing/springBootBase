@@ -24,6 +24,11 @@
 			<artifactId>baseService</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>cn.sh.base</groupId>
+			<artifactId>changHaiControll</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		
 
 	</dependencies>
