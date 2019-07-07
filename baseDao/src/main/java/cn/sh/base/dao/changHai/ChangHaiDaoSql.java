@@ -17,6 +17,7 @@ public class ChangHaiDaoSql {
 				if (result != null) {
 					VALUES("result", "#{" + result + "}");
 				}
+				
 			}
 		}.toString();
 	}

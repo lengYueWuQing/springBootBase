@@ -30,7 +30,7 @@ public class QiangPiaoCron {
 	public void run() {
 		LOG.info("开始抢票");
 		System.out.println(doctorName);
-		changHaiDao.insertSendMailInfo(UUID.randomUUID().toString(), "抢票测试", null, new Date());
+		//changHaiDao.insertSendMailInfo(UUID.randomUUID().toString(), "抢票测试", null, new Date());
 		changHaiDao.insertQiangPiaoInfo(UUID.randomUUID().toString(), doctorName, new Date());
 		
 		
