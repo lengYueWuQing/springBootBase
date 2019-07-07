@@ -1,5 +1,7 @@
 package cn.sh.Utils;
 
+import java.util.UUID;
+
 public class StringUtils {
 
 	/**
@@ -115,5 +117,13 @@ public class StringUtils {
 			}
 		}
 		return new String(c);
+	}
+	
+	/**
+	 * 获取随机的uuid
+	 * @return
+	 */
+	public static String getRrandomUUID() {
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 }

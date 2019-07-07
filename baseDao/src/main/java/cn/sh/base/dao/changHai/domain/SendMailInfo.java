@@ -15,6 +15,7 @@ public class SendMailInfo implements Serializable{
 	private static final long serialVersionUID = -4748479049593708997L;
 	private Integer id;
 	private String uuid;
+	private String mail;
 	private String sendReason;
 	private Boolean result;
 	private Date createTime;
@@ -27,6 +28,12 @@ public class SendMailInfo implements Serializable{
 	}
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
+	}
+	public String getMail() {
+		return mail;
+	}
+	public void setMail(String mail) {
+		this.mail = mail;
 	}
 	public String getSendReason() {
 		return sendReason;

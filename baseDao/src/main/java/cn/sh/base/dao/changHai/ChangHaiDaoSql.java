@@ -6,16 +6,17 @@ import org.apache.ibatis.jdbc.SQL;
 
 public class ChangHaiDaoSql {
 
-	public String insertSendMailInfo(String uuid, String sendReason, Boolean result, Date createTime) {
+	public String insertSendMailInfo(String uuid, String mail, String sendReason, Boolean result, Date createTime) {
 
 		return new SQL() {
 			{
 				INSERT_INTO("send_mail_info");
-				VALUES("uuid", "#{" + uuid + "}");
-				VALUES("send_reason", "#{" + sendReason + "}");
-				VALUES("create_time", "#{" + createTime + "}");
+				VALUES("uuid", "#{uuid}");
+				VALUES("mail", "#{mail}");
+				VALUES("send_reason", "#{sendReason}");
+				VALUES("create_time", "#{createTime}");
 				if (result != null) {
-					VALUES("result", "#{" + result + "}");
+					VALUES("result", "#{result}");
 				}
 				
 			}

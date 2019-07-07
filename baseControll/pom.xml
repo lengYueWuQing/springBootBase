@@ -29,6 +29,11 @@
 			<artifactId>changHaiControll</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>javazoom</groupId>
+			<artifactId>jlayer</artifactId>
+			<version>1.0.1</version>
+		</dependency>
 		
 
 	</dependencies>
