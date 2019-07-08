@@ -132,7 +132,7 @@ public class SendQQMailUtils {
 			
 			return true;
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			new Exception(ex);
 		}
 		return false;
 	}

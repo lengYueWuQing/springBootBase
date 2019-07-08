@@ -3,10 +3,13 @@ package cn.sh.base.controll.changHai;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +25,7 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,48 +43,96 @@ import cn.sh.Utils.mail.SendQQMailUtils;
 import cn.sh.base.dao.changHai.ChangHaiDao;
 import javazoom.jl.player.Player;
 
+@SuppressWarnings("deprecation")
 @Component
 @EnableScheduling
 @PropertySource("classpath:cron.properties")
 public class QiangPiaoCron {
 
 	@Autowired
-	private static ChangHaiDao changHaiDao;
+	private ChangHaiDao changHaiDao;
 
 	@Value("${QiangPiaoCron.doctor.name}")
-	private static String doctorName;
+	private String doctorName;
 	@Value("${QiangPiaoCron.mail}")
-	private static String mail;
+	private String mail;
+	@Value("${QiangPiaoCron.noticeNum:3}")
+	private int noticeNum;
+	@Value("${QiangPiaoCron.notice.date.existbe}") // 存在时间提醒
+	private String existbeDate;
 
 	private static final Logger LOG = LoggerFactory.getLogger(QiangPiaoCron.class);
 
 	@Scheduled(fixedDelayString = "${QiangPiaoCron.run}")
 	public void run() {
-		LOG.info("开始抢票");
-		Date now = new Date();
-		LOG.info("开始时间：{}", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(now));
-		String uuid = StringUtils.getRrandomUUID();
-		try {
-			start(uuid);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		LOG.info("开始抢票，开始时间：{}", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		List<Date> existbeDateList = new ArrayList<Date>();
+		if (Strings.isBlank(doctorName)) {
+			LOG.error("请配置doctorName");
+			return;
+		} else {
+			doctorName = doctorName.trim();
 		}
-		changHaiDao.insertSendMailInfo(uuid, mail, "抢票测试", true, new Date());
-		changHaiDao.insertQiangPiaoInfo(uuid, "123", new Date());
+		if (!Strings.isBlank(existbeDate)) {
+			existbeDate = existbeDate.trim();
+			String[] dates = existbeDate.split(",", -1);
+			if (dates != null && dates.length > 0) {
+				for (String date : dates) {
+					try {
+						existbeDateList.add(new SimpleDateFormat("yyyyMMdd").parse(date));
+					} catch (ParseException e) {
+						LOG.error("配置 existbe 有误：{}", existbeDate);
+						return;
+					}
+
+				}
+			}
+			LOG.info("查询存在时间为：{}", existbeDate);
+		}
+		String uuid = StringUtils.getRrandomUUID();
+		List<Integer> sendStatus = new ArrayList<Integer>();
+		sendStatus.add(0);// 存在某时间的发送成功次数
+		sendStatus.add(0);// 存在某时间的发送失败次数
+		sendStatus.add(0);// 有号的发送成功次数
+		sendStatus.add(0);// 有号的发送失败次数
+		sendStatus.add(0);// 播放音乐 默认未播放
+
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+
+			@Override
+			public void run() {
+				try {
+					if (sendStatus.get(1) > 3 || sendStatus.get(0) > 3) {
+						timer.cancel();
+					}
+					if (sendStatus.get(2) > 4 || sendStatus.get(3) > 4) {
+						timer.cancel();
+					}
+					start(uuid, noticeNum, existbeDateList, sendStatus);
+				} catch (Exception e) {
+					LOG.error("抢票失败：{}", e);
+				}
+
+			}
+
+		}, 0, 1000 * 4);
+
+		// changHaiDao.insertSendMailInfo(uuid, mail, "抢票测试", true, new Date());
+		// changHaiDao.insertQiangPiaoInfo(uuid, "123", new Date());
 
 		LOG.info("结束抢票");
 
 	}
 
-	public static boolean start(String uuid) throws Exception {
+	public boolean start(String uuid, int noticeNum, List<Date> existbeDateList, List<Integer> sendStatus)
+			throws Exception {
 
 		List<String> emails = new ArrayList<String>();
 		emails.add(mail);
 		String DEPT_CODE = "100804";// 神经内科
 		// DEPT_CODE = "300203";//肛肠科
 		String APP_UUID = UUID.randomUUID().toString();
-		System.out.println(APP_UUID);
 		String PHONETYPE = "mido";// 手机型号
 		String IMEI_ID = "365722dd6d73d894";// 手机imei
 		String url = "https://app.quyiyuan.com/APP/appoint/action/AppointActionC.jspx?APPOINT_SOURCE=0&APP_UUID="
@@ -94,7 +146,7 @@ public class QiangPiaoCron {
 			LOG.error("没有 success 字段");
 			return false;
 		}
-		String timeStr = json.getString("time");
+		// String timeStr = json.getString("time");
 		if (json.getJSONObject("data") == null) {
 			LOG.error("没有 data 字段");
 			return false;
@@ -114,7 +166,6 @@ public class QiangPiaoCron {
 			String zhiwei = jsonObject.getString("DOCTOR_TITLE");// 职位
 			String haos = jsonObject.getString("DOCTOR_TITLE");// 号类型
 			JSONArray zhibanArray = jsonObject.getJSONArray("DOCTOR_SCHEDULE_LIST");// 值班表
-			int num = 3;
 			for (int j = 0; j < zhibanArray.size(); j++) {
 				JSONObject zhibanObject = zhibanArray.getJSONObject(j);
 				String zhibanTime = zhibanObject.getString("CLINIC_DATE");
@@ -123,43 +174,77 @@ public class QiangPiaoCron {
 				String zhibanPay = zhibanObject.getString("SUM_FEE");
 				if (haoFlag != null) {
 					haoFlag = haoFlag.trim();
+					String keshi = "";
+					switch (DEPT_CODE) {
+					case "100804":
+						keshi = "神经内科";
+						break;
+					case "300203":
+						keshi = "肛肠外科";
+						break;
 
-					if (DEPT_CODE.equals("100804")) {
-						if ("毕晓莹".equals(name.trim())) {
-                           							
-							changHaiDao.insertQiangPiaoInfo(uuid, "123", new Date());
-							changHaiDao.insertSendMailInfo(uuid, mail, "抢票测试", true, new Date());
-							if (noticeNum == 6 && (new SimpleDateFormat("yyyyMMdd").parse("20190729"))
-									.before(new SimpleDateFormat("yyyy/MM/dd").parse(zhibanTime))) { // flag1 = false;
-								SendQQMailUtils.sendHtmlMail("神经内科",
-										new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()), emails, null);
+					default:
+						break;
+					}
+					if (doctorName.equals(name.trim())) {
+						if (sendStatus.get(1) > 3 || sendStatus.get(0) > 3) {
+							continue;
+						}
+						Date zhibanDate = null;
+						try {
+							zhibanDate = new SimpleDateFormat("yyyy/MM/dd").parse(zhibanTime);
+						} catch (Exception e) {
+							LOG.error("转化接口返回时间:{} 失败", zhibanTime, e);
+						}
 
+						if (zhibanDate != null && existbeDateList.size() > 0 && existbeDateList.contains(zhibanDate)) {
+							boolean sendResult = false;
+							try {
+								sendResult = SendQQMailUtils.sendHtmlMail(keshi, doctorName + "存在预约时间为" + zhibanTime,
+										emails, null);
+							} catch (Exception e) {
+								LOG.error("发送邮件失败", e);
 							}
+							if (sendResult) {
+								sendStatus.set(0, sendStatus.get(0) + 1);
+							} else {
+								sendStatus.set(1, sendStatus.get(1) + 1);
+							}
+
+							// changHaiDao.insertQiangPiaoInfo(uuid, doctorName+"存在预约时间为"+zhibanTime, new
+							// Date());
+							changHaiDao.insertSendMailInfo(uuid, mail, doctorName + "存在预约时间为" + zhibanTime, sendResult,
+									new Date());
+
 						}
 					}
 
 					if ("1".equals(haoFlag)) {
+						if (sendStatus.get(2) >= 4 || sendStatus.get(3) >= 4) {
+							continue;
+						}
 						haoFlag = "有号";
-						if (DEPT_CODE.equals("100804")) {
-							if ("毕晓莹".equals(name.trim())) {
-
-								String message = "姓名：" + name + " 职位：" + zhiwei + " 预约时间：" + zhibanTime + " 有无号："
-										+ haoFlag + " 金额：" + zhibanPay + " 号类型：" + zhibanType;
-								SendQQMailUtils.sendHtmlMail("神经内科", message, emails, null);
-								if (noticeNum == 5) {
-									startMusic();
-								}
-
+						if (doctorName.equals(name.trim())) {
+							changHaiDao.insertQiangPiaoInfo(uuid, doctorName, new Date());
+							String message = "姓名：" + name + " 职位：" + zhiwei + " 预约时间：" + zhibanTime + " 号状态：" + haoFlag
+									+ " 金额：" + zhibanPay + " 号类型：" + zhibanType;
+							boolean sendResult = false;
+							try {
+								SendQQMailUtils.sendHtmlMail(keshi, message, emails, null);
+							} catch (Exception e) {
+								LOG.error("发送邮件失败", e);
 							}
-
-						} else if (DEPT_CODE.equals("300203")) {
-							if ("毕晓莹".equals(name.trim())) {
-								String message = "姓名：" + name + " 职位：" + zhiwei + " 预约时间：" + zhibanTime + " 有无号："
-										+ haoFlag + " 金额：" + zhibanPay + " 号类型：" + zhibanType;
-								SendQQMailUtils.sendHtmlMail("肛肠科", message, emails, null);
-								if (noticeNum == 5) {
-									startMusic();
-								}
+							if (sendResult) {
+								sendStatus.set(2, sendStatus.get(0) + 1);
+							} else {
+								sendStatus.set(3, sendStatus.get(1) + 1);
+							}
+							changHaiDao.insertSendMailInfo(uuid, mail, doctorName + "存在时间为" + zhibanTime + "的号",
+									sendResult, new Date());
+							if (sendStatus.get(4) == 0) {
+								startMusic();
+								changHaiDao.updateQiangPiaoInfoByUuid(uuid, true);
+								sendStatus.set(4, 1);
 							}
 
 						}
@@ -172,9 +257,11 @@ public class QiangPiaoCron {
 						haoFlag = "过期";
 					}
 				}
+				if (doctorName.equals(name.trim())) {
+					LOG.info("姓名：" + name + " 职位：" + zhiwei + " 预约时间：" + zhibanTime + " 有无号：" + haoFlag + " 金额："
+							+ zhibanPay + " 号状态：" + zhibanType);
+				}
 
-				LOG.error("姓名：" + name + " 职位：" + zhiwei + " 预约时间：" + zhibanTime + " 有无号：" + haoFlag + " 金额："
-						+ zhibanPay + " 号类型：" + zhibanType);
 			}
 
 		}
@@ -185,7 +272,6 @@ public class QiangPiaoCron {
 	private final static RequestConfig defaultRequestConfig = RequestConfig.custom().setSocketTimeout(8000)
 			.setConnectTimeout(5000).setConnectionRequestTimeout(5000).build();
 
-	@SuppressWarnings("deprecation")
 	public static String doGet(String url) throws Exception {
 		if (url == null || "".equals(url = url.trim())) {
 			throw new Exception("url不存在");
@@ -237,7 +323,7 @@ public class QiangPiaoCron {
 					}
 
 				} catch (Exception e) {
-					// TODO: handle exception
+					LOG.error("开启背景乐失败", e);
 				}
 
 			}

@@ -19,8 +19,8 @@ public interface ChangHaiDao {
 	@Insert("insert into qiang_piao_info (uuid, doctor_name, create_time) values (#{uuid}, #{doctorName}, #{createTime})")
 	void insertQiangPiaoInfo(@Param("uuid") String uuid, @Param("doctorName") String doctorName, @Param("createTime") Date createTime);
 	
-	@Insert("update qiang_piao_info set play_music = #{plauMusic}, create_time = #{createTime})")
-	void updateQiangPiaoInfoByUuid(String uuid, Boolean playMusic, Date createTime);
+	@Insert("update qiang_piao_info set play_music = #{plauMusic})")
+	void updateQiangPiaoInfoByUuid(String uuid, Boolean playMusic);
 	
 	@Select("select uuid, doctor_name as doctorName, play_music as playMusic from qiang_piao_info where uuid = #{uuid})")
 	QiangPiaoInfo selectQiangPiaoInfoByUuid(String uuid);
@@ -32,6 +32,6 @@ public interface ChangHaiDao {
 	@Update("update send_mail_info set result = #{result} where uuid = ${uuid}")
 	void updateSendMailInfoByUuid(String uuid, Boolean result);
 	
-	@Select("select uuid, result from send_mail_info where uuid = #{uuid})")
-	List<SendMailInfo> selectSendMailInfoByUuid(String uuid);
+	@InsertProvider(method = "selectSendMailInfoByUuid", type = ChangHaiDaoSql.class)
+	List<SendMailInfo> selectSendMailInfoByUuid(String uuid,String mail, String sendReason, Boolean result);
 }
