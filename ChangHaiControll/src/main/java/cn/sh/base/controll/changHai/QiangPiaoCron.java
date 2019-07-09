@@ -41,6 +41,7 @@ import com.alibaba.fastjson.JSONObject;
 import cn.sh.Utils.StringUtils;
 import cn.sh.Utils.mail.SendQQMailUtils;
 import cn.sh.base.dao.changHai.ChangHaiDao;
+import cn.sh.base.dao.changHai.domain.QiangPiaoInfo;
 import javazoom.jl.player.Player;
 
 @SuppressWarnings("deprecation")
@@ -65,7 +66,8 @@ public class QiangPiaoCron {
 
 	@Scheduled(fixedDelayString = "${QiangPiaoCron.run}")
 	public void run() {
-		LOG.info("开始抢票，开始时间：{}", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		Date now = new Date();
+		LOG.info("开始抢票，开始时间：{}", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(now));
 		List<Date> existbeDateList = new ArrayList<Date>();
 		if (Strings.isBlank(doctorName)) {
 			LOG.error("请配置doctorName");
@@ -95,18 +97,16 @@ public class QiangPiaoCron {
 		sendStatus.add(0);// 存在某时间的发送失败次数
 		sendStatus.add(0);// 有号的发送成功次数
 		sendStatus.add(0);// 有号的发送失败次数
-		sendStatus.add(0);// 播放音乐 默认未播放
-
+        
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 
 			@Override
 			public void run() {
 				try {
-					if (sendStatus.get(1) > 3 || sendStatus.get(0) > 3) {
-						timer.cancel();
-					}
-					if (sendStatus.get(2) > 4 || sendStatus.get(3) > 4) {
+					
+					if (sendStatus.get(2) >= 4 || sendStatus.get(3) >= 4) {
+						LOG.info("结束抢票提醒。启动时间为：{}",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(now));
 						timer.cancel();
 					}
 					start(uuid, noticeNum, existbeDateList, sendStatus);
@@ -118,10 +118,6 @@ public class QiangPiaoCron {
 
 		}, 0, 1000 * 4);
 
-		// changHaiDao.insertSendMailInfo(uuid, mail, "抢票测试", true, new Date());
-		// changHaiDao.insertQiangPiaoInfo(uuid, "123", new Date());
-
-		LOG.info("结束抢票");
 
 	}
 
@@ -131,6 +127,17 @@ public class QiangPiaoCron {
 		List<String> emails = new ArrayList<String>();
 		emails.add(mail);
 		String DEPT_CODE = "100804";// 神经内科
+		switch (doctorName) {
+		case "毕晓莹":
+			DEPT_CODE = "100804";
+			break;
+        case "张卫":
+        	DEPT_CODE = "300203";
+			break;
+
+		default:
+			break;
+		}
 		// DEPT_CODE = "300203";//肛肠科
 		String APP_UUID = UUID.randomUUID().toString();
 		String PHONETYPE = "mido";// 手机型号
@@ -187,7 +194,7 @@ public class QiangPiaoCron {
 						break;
 					}
 					if (doctorName.equals(name.trim())) {
-						if (sendStatus.get(1) > 3 || sendStatus.get(0) > 3) {
+						if (sendStatus.get(1) >= 3 || sendStatus.get(0) >= 3) {
 							continue;
 						}
 						Date zhibanDate = null;
@@ -211,8 +218,6 @@ public class QiangPiaoCron {
 								sendStatus.set(1, sendStatus.get(1) + 1);
 							}
 
-							// changHaiDao.insertQiangPiaoInfo(uuid, doctorName+"存在预约时间为"+zhibanTime, new
-							// Date());
 							changHaiDao.insertSendMailInfo(uuid, mail, doctorName + "存在预约时间为" + zhibanTime, sendResult,
 									new Date());
 
@@ -225,7 +230,10 @@ public class QiangPiaoCron {
 						}
 						haoFlag = "有号";
 						if (doctorName.equals(name.trim())) {
-							changHaiDao.insertQiangPiaoInfo(uuid, doctorName, new Date());
+							List<QiangPiaoInfo> qiangPiaoInfoList = changHaiDao.selectQiangPiaoInfo(uuid, doctorName);
+							if(qiangPiaoInfoList==null || qiangPiaoInfoList.size() <= 0) {
+								changHaiDao.insertQiangPiaoInfo(uuid, doctorName, new Date());
+							}
 							String message = "姓名：" + name + " 职位：" + zhiwei + " 预约时间：" + zhibanTime + " 号状态：" + haoFlag
 									+ " 金额：" + zhibanPay + " 号类型：" + zhibanType;
 							boolean sendResult = false;
@@ -235,16 +243,15 @@ public class QiangPiaoCron {
 								LOG.error("发送邮件失败", e);
 							}
 							if (sendResult) {
-								sendStatus.set(2, sendStatus.get(0) + 1);
+								sendStatus.set(2, sendStatus.get(2) + 1);
 							} else {
-								sendStatus.set(3, sendStatus.get(1) + 1);
+								sendStatus.set(3, sendStatus.get(3) + 1);
 							}
 							changHaiDao.insertSendMailInfo(uuid, mail, doctorName + "存在时间为" + zhibanTime + "的号",
 									sendResult, new Date());
-							if (sendStatus.get(4) == 0) {
+							if(qiangPiaoInfoList==null || qiangPiaoInfoList.size() <= 0) {
 								startMusic();
-								changHaiDao.updateQiangPiaoInfoByUuid(uuid, true);
-								sendStatus.set(4, 1);
+								changHaiDao.updateQiangPiaoInfo(uuid, doctorName, true, new Date());
 							}
 
 						}
@@ -318,8 +325,6 @@ public class QiangPiaoCron {
 						BufferedInputStream stream = new BufferedInputStream(fis);
 						Player player = new Player(stream);
 						player.play();
-						System.out.println("播放");
-
 					}
 
 				} catch (Exception e) {

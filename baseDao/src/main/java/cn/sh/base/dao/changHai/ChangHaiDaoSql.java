@@ -22,7 +22,7 @@ public class ChangHaiDaoSql {
 		}.toString();
 	}
 	
-	public String selectSendMailInfoByUuid(String uuid, String mail, String sendReason, Boolean result) {
+	public String selectSendMailInfo(String uuid, String mail, String sendReason, Boolean result) {
 		return new SQL() {
 			{
 				SELECT("uuid, mail, send_reason as sendReason, result, create_time as createTime");
@@ -44,4 +44,28 @@ public class ChangHaiDaoSql {
 			}
 		}.toString();
 	}
+	
+	public String countSendMailInfo(String uuid, String mail, String sendReason, Boolean result) {
+		return new SQL() {
+			{
+				SELECT("count(*)");
+				FROM("send_mail_info");
+				WHERE("uuid=#{uuid}");
+				
+				if (!StringUtils.isEmpty(mail)) {
+					AND();
+					VALUES("mail", "#{mail}");
+				}
+				if (result != null) {
+					AND();
+					VALUES("result", "#{result}");
+				}
+				if (result != null) {
+					AND();
+					VALUES("send_reason", "#{sendReason}");
+				}
+			}
+		}.toString();
+	}
+	
 }
