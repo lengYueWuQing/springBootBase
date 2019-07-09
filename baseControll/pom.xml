@@ -46,7 +46,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<!-- 打包 -->
 				<configuration>
-					<mainClass>cn.sh.base.controll.FrameWindows</mainClass>
+					<mainClass>cn.sh.base.FrameWindows</mainClass>
 				</configuration>
 			</plugin>
 			<!-- 编译时设置参数 -->

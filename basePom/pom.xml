@@ -71,6 +71,7 @@
 		<module>../baseControll</module>
 		<module>../baseService</module>
 		<module>../baseDao</module>
+		<module>../changHaiControll</module>
 	</modules>
 	<build>
 		<defaultGoal>compile</defaultGoal>

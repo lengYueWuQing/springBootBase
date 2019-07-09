@@ -64,6 +64,7 @@ public class QiangPiaoCron {
 
 	private static final Logger LOG = LoggerFactory.getLogger(QiangPiaoCron.class);
 
+	//@Scheduled(cron = "${QiangPiaoCron.run}")
 	@Scheduled(fixedDelayString = "${QiangPiaoCron.run}")
 	public void run() {
 		Date now = new Date();

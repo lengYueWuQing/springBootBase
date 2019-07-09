@@ -5,11 +5,16 @@
 
 	<groupId>cn.sh.base</groupId>
 	<artifactId>changHaiControll</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>changHaiControll</name>
 	<url>http://maven.apache.org</url>
+	<parent>
+		<groupId>cn.sh</groupId>
+		<artifactId>basePom</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../basePom/pom.xml</relativePath>
+	</parent>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
