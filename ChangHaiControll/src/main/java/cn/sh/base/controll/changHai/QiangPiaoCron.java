@@ -64,8 +64,8 @@ public class QiangPiaoCron {
 
 	private static final Logger LOG = LoggerFactory.getLogger(QiangPiaoCron.class);
 
-	//@Scheduled(cron = "${QiangPiaoCron.run}")
-	@Scheduled(fixedDelayString = "${QiangPiaoCron.run}")
+	@Scheduled(cron = "${QiangPiaoCron.run}")
+	//@Scheduled(fixedDelayString = "${QiangPiaoCron.run}")
 	public void run() {
 		Date now = new Date();
 		LOG.info("开始抢票，开始时间：{}", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(now));
