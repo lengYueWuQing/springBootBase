@@ -13,26 +13,6 @@ import cn.sh.Utils.FileUtils;
 public class Application {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
-	/*@Autowired
-	private UserService userService;
-	@RequestMapping("/users")
-	public void getUserInfo(@RequestParam(value="loginName",required=false)String loginName,@RequestParam(value="pass",required=false)String pass, HttpServletResponse response){
-		System.out.println("访问users");
-		Logger LOG=LoggerFactory.getLogger(Application.class);
-		//return userService.getUserMess(loginName, pass);
-		//Logger LOG=Logger.getLogger(Application.class);
-		LOG.error("success");
-		LOG.info("success");
-		LOG.warn("success");
-		try {
-			response.getWriter().print("{\"id\"=5,\"name\"=\"haah\"}");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-	}*/
 	
 	public static String start(String[] args) {
 		LOG.info("启动SpringApplication");
